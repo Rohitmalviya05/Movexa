@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Movexa Cargo</title>
+
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- TOP HEADER -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">M</div>
+        <div>
+          <h1>Movexa Cargo</h1>
+          <p id="userSubtitle">Goods transport for vendors</p>
+        </div>
+      </div>
+
+      <button id="logoutBtn" class="ghostBtn hidden" onclick="logout()">
+        Logout
+      </button>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+
+      <!-- AUTH SCREEN -->
+      <section id="authScreen" class="screen">
+        <div class="card">
+          <h2>Login / Signup</h2>
+
+          <div class="field">
+            <label>Name (only signup)</label>
+            <input id="authName" placeholder="Your name" />
+          </div>
+
+          <div class="field">
+            <label>Email</label>
+            <input id="authEmail" placeholder="example@gmail.com" />
+          </div>
+
+          <div class="field">
+            <label>Password</label>
+            <input id="authPassword" type="password" placeholder="******" />
+          </div>
+
+          <div class="field">
+            <label>Role</label>
+            <select id="authRole">
+              <option value="customer">Customer</option>
+              <option value="driver">Driver</option>
+            </select>
+          </div>
+
+          <button class="primaryBtn" onclick="login()">Login</button>
+          <button class="secondaryBtn" onclick="signup()">Signup</button>
+
+          <p id="authMsg" class="msg"></p>
+        </div>
+
+        <div class="hintBox">
+          <p><b>Tip:</b> For driver, login then click <b>Go Online</b>.</p>
+        </div>
+      </section>
+
+      <!-- CUSTOMER SCREEN -->
+      <section id="customerScreen" class="screen hidden">
+
+        <div class="card">
+          <h2>Book Transport</h2>
+
+          <div class="field">
+            <label>Pickup Location</label>
+            <input id="pickup" placeholder="Indore" />
+          </div>
+
+          <div class="field">
+            <label>Drop Location</label>
+            <input id="drop" placeholder="Bhopal" />
+          </div>
+
+          <div class="grid2">
+            <div class="field">
+              <label>Vehicle</label>
+              <select id="vehicle">
+                <option value="bikeParcel">Bike Parcel</option>
+                <option value="pickup">Pickup</option>
+                <option value="tempo">Tempo / Metadoor</option>
+                <option value="miniTruck">Mini Truck</option>
+                <option value="truck">Truck</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Cargo Size</label>
+              <select id="cargoSize" onchange="autoSuggestVehicle()">
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+              </select>
+            </div>
+          </div>
+
+          <label class="checkboxRow">
+            <input type="checkbox" id="needsHelper" />
+            Need helper for loading/unloading
+          </label>
+
+          <button class="primaryBtn" onclick="calculateFare()">Calculate Fare</button>
+
+          <div class="infoBox">
+            <p id="fareInfo" class="msg">Fill details and calculate fare.</p>
+          </div>
+
+          <button class="secondaryBtn" onclick="createBooking()">Confirm Booking</button>
+          <p id="bookingResult" class="msg"></p>
+        </div>
+
+        <div class="card">
+          <h2>Route Preview</h2>
+          <div id="map"></div>
+        </div>
+
+        <div class="card">
+          <div class="rowBetween">
+            <h2>My Bookings</h2>
+            <button class="ghostBtn" onclick="loadCustomerBookings()">Refresh</button>
+          </div>
+          <div id="customerBookingsList" class="listBox">
+            <p class="smallText">No bookings loaded.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- DRIVER SCREEN -->
+      <section id="driverScreen" class="screen hidden">
+
+        <div class="card">
+          <div class="rowBetween">
+            <h2>Driver Panel</h2>
+            <button class="ghostBtn" onclick="toggleOnline()">Go Online/Offline</button>
+          </div>
+
+          <p class="smallText">
+            Status: <b id="driverOnlineStatus">Offline</b>
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="rowBetween">
+            <h2>Current Job</h2>
+            <button class="ghostBtn" onclick="loadDriverCurrent()">Refresh</button>
+          </div>
+
+          <div id="driverCurrentBox" class="listBox">
+            <p class="smallText">No current booking.</p>
+          </div>
+
+          <div class="actions">
+            <button onclick="startCurrent()">Start</button>
+            <button onclick="completeCurrent()">Complete</button>
+          </div>
+
+          <p id="driverStatus" class="msg"></p>
+        </div>
+
+        <div class="card">
+          <div class="rowBetween">
+            <h2>Available Booking</h2>
+            <button class="ghostBtn" onclick="refreshAvailable()">Refresh</button>
+          </div>
+
+          <div id="driverAvailableBox" class="listBox">
+            <p class="smallText">No booking loaded.</p>
+          </div>
+
+          <div class="actions">
+            <button onclick="acceptAvailable()">Accept</button>
+          </div>
+
+          <p id="driverAvailableStatus" class="msg"></p>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- BOTTOM NAV -->
+    <nav id="bottomNav" class="bottomNav hidden">
+      <button id="tabCustomer" onclick="switchTab('customer')">
+        Customer
+      </button>
+      <button id="tabDriver" onclick="switchTab('driver')">
+        Driver
+      </button>
+    </nav>
+
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="map.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
