@@ -1,5 +1,5 @@
 // ✅ Change this for deployment
-const API_BASE = "http://localhost:5000";
+const BASE_URL = "https://movexa.onrender.com";
 
 let token = localStorage.getItem("token") || "";
 let role = localStorage.getItem("role") || "";
