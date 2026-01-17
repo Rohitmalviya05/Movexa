@@ -13,13 +13,32 @@ connectDB();
 const app = express();
 app.use(express.json());
 
-// ✅ CORS for both local + deployed
+const allowedOrigins = [
+  "http://127.0.0.1:5500",
+  "http://localhost:5500",
+  "http://localhost:5173",
+  "https://movexaaa.netlify.app"
+];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN || "*",
-    credentials: true
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
   })
 );
+
+// ✅ Important for preflight requests
+app.options("*", cors());
 
 // Routes
 const authRoutes = require("./routes/auth.routes");
