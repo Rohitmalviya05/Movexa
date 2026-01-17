@@ -14,31 +14,23 @@ const app = express();
 app.use(express.json());
 
 const allowedOrigins = [
+  "https://movexaaa.netlify.app",
   "http://127.0.0.1:5500",
-  "http://localhost:5500",
-  "http://localhost:5173",
-  "https://movexaaa.netlify.app"
+  "http://localhost:5500"
 ];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
-  })
-);
-
-// ✅ Important for preflight requests
 app.options("*", cors());
+
 
 // Routes
 const authRoutes = require("./routes/auth.routes");
