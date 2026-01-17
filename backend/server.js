@@ -13,11 +13,14 @@ connectDB();
 const app = express();
 app.use(express.json());
 
-const allowedOrigins = [
-  "https://movexaaa.netlify.app",
-  "http://127.0.0.1:5500",
-  "http://localhost:5500"
-];
+const corsOptions = {
+  origin: "https://movexaaa.netlify.app",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.use(cors({
   origin: function (origin, callback) {
