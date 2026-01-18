@@ -5,33 +5,33 @@ const bookingSchema = new mongoose.Schema(
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true
+      required: true,
     },
 
     driver: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      default: null
+      default: null,
     },
 
-    pickup: { type: String, required: true },
-    drop: { type: String, required: true },
+    pickup: { type: String, required: true, trim: true },
+    drop: { type: String, required: true, trim: true },
 
     vehicleType: {
       type: String,
       enum: ["bikeParcel", "pickup", "tempo", "miniTruck", "truck"],
-      required: true
+      required: true,
     },
 
     cargoSize: {
       type: String,
       enum: ["small", "medium", "large"],
-      default: "small"
+      default: "small",
     },
 
     needsHelper: {
       type: Boolean,
-      default: false
+      default: false,
     },
 
     distanceKm: { type: Number, required: true },
@@ -42,8 +42,8 @@ const bookingSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["CREATED", "ASSIGNED", "IN_PROGRESS", "COMPLETED"],
-      default: "CREATED"
-    }
+      default: "CREATED",
+    },
   },
   { timestamps: true }
 );

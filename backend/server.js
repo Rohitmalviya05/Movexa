@@ -4,18 +4,19 @@ require("dotenv").config();
 
 const connectDB = require("./config/db");
 
-// node-fetch for Node 22+
+// Node-fetch for Node 22+
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
+const app = express();
 
 // Connect DB
 connectDB();
 
-const app = express();
+// Middleware
 app.use(express.json());
 
-// ✅ Allow Netlify + Localhost
-// ✅ Allow Netlify + Localhost
+// ✅ Allowed Origins
 const allowedOrigins = [
   "https://movexaaa.netlify.app",
   "http://127.0.0.1:5500",
@@ -25,6 +26,7 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: (origin, callback) => {
+    // allow tools like Postman/curl (no origin)
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
@@ -35,13 +37,11 @@ const corsOptions = {
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
 };
 
 app.use(cors(corsOptions));
-
-// ✅ MUST handle preflight correctly
 app.options("*", cors(corsOptions));
-
 
 /* ---------------- ROUTES ---------------- */
 const authRoutes = require("./routes/auth.routes");
@@ -52,7 +52,7 @@ app.use("/api/bookings", bookingRoutes);
 
 /* ---------------- HEALTH CHECK ---------------- */
 app.get("/", (req, res) => {
-  res.json({ status: "Movexa Cargo backend running" });
+  res.json({ status: "Movexa Cargo backend running ✅" });
 });
 
 /* ---------------- UTILITY: GEO CODING ---------------- */
@@ -61,24 +61,30 @@ async function getCoordinates(place) {
     place
   )}`;
 
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    headers: {
+      // ✅ Nominatim requires identifying header in many cases
+      "User-Agent": "MovexaCargoApp/1.0 (contact: example@gmail.com)",
+    },
+  });
+
   const data = await response.json();
 
-  if (!data.length) throw new Error("Location not found");
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Error("Location not found");
+  }
 
-  return { lat: data[0].lat, lon: data[0].lon };
+  return {
+    lat: Number(data[0].lat),
+    lon: Number(data[0].lon),
+  };
 }
 
 /* ---------------- FARE API ---------------- */
 app.post("/api/route-fare", async (req, res) => {
   try {
-    const {
-      pickup,
-      drop,
-      vehicleType,
-      cargoSize = "small",
-      needsHelper = false,
-    } = req.body;
+    const { pickup, drop, vehicleType, cargoSize = "small", needsHelper = false } =
+      req.body;
 
     if (!pickup || !drop || !vehicleType) {
       return res.status(400).json({ error: "Missing data" });
@@ -110,18 +116,22 @@ app.post("/api/route-fare", async (req, res) => {
     const end = await getCoordinates(drop);
 
     const routeURL = `https://router.project-osrm.org/route/v1/driving/${start.lon},${start.lat};${end.lon},${end.lat}?overview=false`;
+
     const routeRes = await fetch(routeURL);
     const routeData = await routeRes.json();
 
-    if (!routeData.routes || !routeData.routes.length) {
+    if (!routeData.routes || routeData.routes.length === 0) {
       throw new Error("Route not found");
     }
 
     const distanceKm = routeData.routes[0].distance / 1000;
     const durationMin = routeData.routes[0].duration / 60;
 
-    const baseFare = pricing[vehicleType].base + pricing[vehicleType].perKm * distanceKm;
+    const baseFare =
+      pricing[vehicleType].base + pricing[vehicleType].perKm * distanceKm;
+
     const helperFee = needsHelper ? 150 : 0;
+
     const fare = baseFare * cargoMultipliers[cargoSize] + helperFee;
 
     res.json({
@@ -135,7 +145,7 @@ app.post("/api/route-fare", async (req, res) => {
       fare: Math.round(fare),
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message || "Something went wrong" });
   }
 });
 

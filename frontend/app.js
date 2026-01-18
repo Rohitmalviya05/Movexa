@@ -31,7 +31,7 @@ function setActiveTab(tab) {
 function authHeaders() {
   return {
     "Content-Type": "application/json",
-    "Authorization": "Bearer " + token
+    Authorization: "Bearer " + token,
   };
 }
 
@@ -70,8 +70,8 @@ async function signup() {
       name: el("authName").value,
       email: el("authEmail").value,
       password: el("authPassword").value,
-      role: el("authRole").value
-    })
+      role: el("authRole").value,
+    }),
   });
 
   const data = await safeJson(res);
@@ -84,8 +84,8 @@ async function login() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       email: el("authEmail").value,
-      password: el("authPassword").value
-    })
+      password: el("authPassword").value,
+    }),
   });
 
   const data = await safeJson(res);
@@ -118,7 +118,7 @@ async function login() {
 
 async function loadMe() {
   const res = await fetch(`${API_BASE}/api/auth/me`, {
-    headers: authHeaders()
+    headers: authHeaders(),
   });
 
   const data = await safeJson(res);
@@ -152,14 +152,13 @@ function switchTab(tab) {
     show("customerScreen");
     hide("driverScreen");
     setActiveTab("customer");
+
     setTimeout(initMap, 200);
 
     loadCustomerBookings();
 
     if (customerAutoTimer) clearInterval(customerAutoTimer);
-    customerAutoTimer = setInterval(() => {
-      loadCustomerBookings();
-    }, 5000);
+    customerAutoTimer = setInterval(loadCustomerBookings, 5000);
   }
 
   if (tab === "driver") {
@@ -198,8 +197,8 @@ async function calculateFare() {
       drop: el("drop").value,
       vehicleType: el("vehicle").value,
       cargoSize: el("cargoSize").value,
-      needsHelper: el("needsHelper").checked
-    })
+      needsHelper: el("needsHelper").checked,
+    }),
   });
 
   const data = await safeJson(res);
@@ -210,8 +209,8 @@ async function calculateFare() {
   }
 
   calculatedFare = data;
-  el("fareInfo").innerText =
-    `Distance: ${data.distanceKm} km | Time: ${data.durationMin} min | Fare: ₹${data.fare}`;
+
+  el("fareInfo").innerText = `Distance: ${data.distanceKm} km | Time: ${data.durationMin} min | Fare: ₹${data.fare}`;
 
   drawRoute(el("pickup").value, el("drop").value);
 }
@@ -233,8 +232,8 @@ async function createBooking() {
       needsHelper: calculatedFare.needsHelper,
       distanceKm: calculatedFare.distanceKm,
       durationMin: calculatedFare.durationMin,
-      fare: calculatedFare.fare
-    })
+      fare: calculatedFare.fare,
+    }),
   });
 
   const data = await safeJson(res);
@@ -250,18 +249,14 @@ async function createBooking() {
 
 async function loadCustomerBookings() {
   const res = await fetch(`${API_BASE}/api/bookings/my`, {
-    headers: authHeaders()
+    headers: authHeaders(),
   });
 
   const data = await safeJson(res);
 
-  if (!data.bookings) {
-    el("customerBookingsList").innerHTML = "<p class='smallText'>No bookings</p>";
-    return;
-  }
-
-  if (data.bookings.length === 0) {
-    el("customerBookingsList").innerHTML = "<p class='smallText'>No bookings found.</p>";
+  if (!data.bookings || data.bookings.length === 0) {
+    el("customerBookingsList").innerHTML =
+      "<p class='smallText'>No bookings found.</p>";
     return;
   }
 
@@ -283,16 +278,22 @@ async function loadCustomerBookings() {
 async function toggleOnline() {
   const res = await fetch(`${API_BASE}/api/bookings/driver/online-toggle`, {
     method: "POST",
-    headers: authHeaders()
+    headers: authHeaders(),
   });
 
   const data = await safeJson(res);
+
+  if (!res.ok) {
+    el("driverOnlineStatus").innerText = "Offline";
+    return;
+  }
+
   el("driverOnlineStatus").innerText = data.isOnline ? "Online" : "Offline";
 }
 
 async function loadDriverCurrent() {
   const res = await fetch(`${API_BASE}/api/bookings/driver/current`, {
-    headers: authHeaders()
+    headers: authHeaders(),
   });
 
   const data = await safeJson(res);
@@ -315,21 +316,22 @@ async function loadDriverCurrent() {
 
 async function refreshAvailable() {
   const res = await fetch(`${API_BASE}/api/bookings/available`, {
-    headers: authHeaders()
+    headers: authHeaders(),
   });
 
   const data = await safeJson(res);
 
-  // if driver is busy or offline etc.
   if (!res.ok) {
-    el("driverAvailableBox").innerHTML = "<p class='smallText'>Not available now.</p>";
+    el("driverAvailableBox").innerHTML =
+      "<p class='smallText'>Not available now.</p>";
     el("driverAvailableStatus").innerText = data.error || "";
     driverAvailableBookingId = null;
     return;
   }
 
   if (!data.booking) {
-    el("driverAvailableBox").innerHTML = "<p class='smallText'>No available booking.</p>";
+    el("driverAvailableBox").innerHTML =
+      "<p class='smallText'>No available booking.</p>";
     el("driverAvailableStatus").innerText = data.message || "";
     driverAvailableBookingId = null;
     return;
@@ -354,10 +356,13 @@ async function acceptAvailable() {
     return;
   }
 
-  const res = await fetch(`${API_BASE}/api/bookings/accept/${driverAvailableBookingId}`, {
-    method: "POST",
-    headers: authHeaders()
-  });
+  const res = await fetch(
+    `${API_BASE}/api/bookings/accept/${driverAvailableBookingId}`,
+    {
+      method: "POST",
+      headers: authHeaders(),
+    }
+  );
 
   const data = await safeJson(res);
 
@@ -367,7 +372,6 @@ async function acceptAvailable() {
   }
 
   el("driverAvailableStatus").innerText = "Accepted ✅";
-
   loadDriverCurrent();
   refreshAvailable();
 }
@@ -380,7 +384,7 @@ async function startCurrent() {
 
   const res = await fetch(`${API_BASE}/api/bookings/start/${driverCurrentBookingId}`, {
     method: "POST",
-    headers: authHeaders()
+    headers: authHeaders(),
   });
 
   const data = await safeJson(res);
@@ -402,7 +406,7 @@ async function completeCurrent() {
 
   const res = await fetch(`${API_BASE}/api/bookings/complete/${driverCurrentBookingId}`, {
     method: "POST",
-    headers: authHeaders()
+    headers: authHeaders(),
   });
 
   const data = await safeJson(res);
