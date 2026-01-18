@@ -21,24 +21,26 @@ app.use(express.json());
  * - Keep only ONE cors() middleware
  */
 const allowedOrigins = [
-  "https://movexaaa.netlify.app",
-  "http://127.0.0.1:5500",
+  "https://movexaaa.netlify.app", // ✅ Your Netlify frontend
+  "http://127.0.0.1:5500",        // ✅ Local Live Server
   "http://localhost:5500",
   "http://localhost:5173"
 ];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // Postman etc.
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(null, false);
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (Postman / server-to-server)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("Not allowed by CORS"));
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
-}));
-
-app.options("*", cors());
-
+};
 
 // ✅ Enable CORS for all requests
 app.use(cors(corsOptions));
