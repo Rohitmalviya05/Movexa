@@ -15,6 +15,7 @@ const app = express();
 app.use(express.json());
 
 // ✅ Allow Netlify + Localhost
+// ✅ Allow Netlify + Localhost
 const allowedOrigins = [
   "https://movexaaa.netlify.app",
   "http://127.0.0.1:5500",
@@ -22,31 +23,25 @@ const allowedOrigins = [
   "http://localhost:5173",
 ];
 
-// ✅ Best CORS config for production + preflight
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // ✅ allow Postman / server requests (no origin)
-      if (!origin) return callback(null, true);
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
 
-      return callback(null, false);
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+    return callback(new Error("CORS blocked"), false);
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
-// ✅ IMPORTANT: Always respond to preflight OPTIONS
-app.use((req, res, next) => {
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
-  next();
-});
+app.use(cors(corsOptions));
+
+// ✅ MUST handle preflight correctly
+app.options("*", cors(corsOptions));
+
 
 /* ---------------- ROUTES ---------------- */
 const authRoutes = require("./routes/auth.routes");
