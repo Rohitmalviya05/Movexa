@@ -13,7 +13,7 @@ const bookingRoutes = require('./routes/bookings');
 const driverRoutes = require('./routes/drivers');
 const paymentRoutes = require('./routes/payments');
 
-const frontendDistPath = path.resolve(__dirname, '../../logistics-frontend/dist');
+const frontendDistPath = path.resolve(__dirname, '../../frontend/dist');
 const frontendIndexPath = path.join(frontendDistPath, 'index.html');
 
 const createApp = () => {
