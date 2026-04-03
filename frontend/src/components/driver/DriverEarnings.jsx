@@ -24,7 +24,8 @@ export default function DriverEarnings() {
     const to   = new Date().toISOString()
     try {
       const { data } = await driverAPI.earnings({ from, to })
-      setEarnings(data.data.earnings)
+      const earningsData = data.data?.earnings || data.data || {}
+      setEarnings(earningsData)
     } catch {}
     finally { setLoading(false) }
   }

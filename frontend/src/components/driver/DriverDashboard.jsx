@@ -51,8 +51,14 @@ export default function DriverDashboard() {
         driverAPI.getProfile(),
         bookingAPI.driverBookings({ limit: 5 }),
       ])
-      if (profRes.status === 'fulfilled') setProfile(profRes.value.data.data.profile)
-      if (bookRes.status === 'fulfilled') setBookings(bookRes.value.data.data?.bookings || [])
+      if (profRes.status === 'fulfilled') {
+        const profData = profRes.value.data.data
+        setProfile(profData?.profile || profData)
+      }
+      if (bookRes.status === 'fulfilled') {
+        const bookData = bookRes.value.data.data
+        setBookings(Array.isArray(bookData?.bookings) ? bookData.bookings : [])
+      }
     } catch {}
     finally { setLoading(false) }
   }

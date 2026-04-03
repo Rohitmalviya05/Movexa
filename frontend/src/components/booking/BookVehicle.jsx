@@ -1,21 +1,72 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MapPin, Navigation, Weight, ChevronRight, Check, CreditCard, Banknote, Info } from 'lucide-react'
+import { MapPin, Navigation, Weight, ChevronRight, Check, CreditCard, Banknote, Info, MapPinned } from 'lucide-react'
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import { bookingAPI } from '../../services/api'
 import { formatCurrency, vehicleIcons, loadTypeLabels, getErrorMessage } from '../../utils/helpers'
 import { ErrorMessage, Spinner, ProgressSteps, DotLoader } from '../common'
 import toast from 'react-hot-toast'
 
 const STEPS = ['Location', 'Load', 'Vehicle', 'Payment']
-
 const LOAD_TYPES = ['documents','parcel','grocery','furniture','appliances','construction','other']
+
+const markerIcon = new L.Icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+})
+
+const greenIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+})
+
+const redIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+})
+
+function LocationMarker({ position, setPosition, type, onClick }) {
+  useMapEvents({
+    click(e) {
+      if (onClick) {
+        onClick(e.latlng.lat, e.latlng.lng)
+      }
+    }
+  })
+  return position ? <Marker position={position} icon={type === 'pickup' ? greenIcon : redIcon} /> : null
+}
+
+function MapUpdater({ center }) {
+  const map = useMap()
+  useEffect(() => {
+    if (center) map.setView(center, 14)
+  }, [center, map])
+  return null
+}
 
 export default function BookVehicle() {
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
+  const [showMap, setShowMap] = useState(false)
+  const [mapMode, setMapMode] = useState('pickup')
   const [form, setForm] = useState({
     pickupAddress: '', pickupLat: 22.7533, pickupLng: 75.8937,
-    dropAddress: '',   dropLat:   22.7196, dropLng:   75.8577,
+    dropAddress: '', dropLat: 22.7196, dropLng: 75.8577,
     loadType: '', loadWeightKg: '',
     vehicleType: '',
     paymentMethod: 'cash',
@@ -28,17 +79,47 @@ export default function BookVehicle() {
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
 
-  // Fetch estimates when reaching vehicle step
   useEffect(() => {
     if (step === 2 && form.loadWeightKg) fetchEstimates()
   }, [step])
+
+  const fetchAddress = async (lat, lng) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+      )
+      const data = await response.json()
+      return data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`
+    } catch {
+      return `${lat.toFixed(4)}, ${lng.toFixed(4)}`
+    }
+  }
+
+  const handleMapClick = async (lat, lng) => {
+    const address = await fetchAddress(lat, lng)
+    if (mapMode === 'pickup') {
+      set('pickupLat', lat)
+      set('pickupLng', lng)
+      set('pickupAddress', address)
+    } else {
+      set('dropLat', lat)
+      set('dropLng', lng)
+      set('dropAddress', address)
+    }
+    setShowMap(false)
+  }
+
+  const openMapFor = (mode) => {
+    setMapMode(mode)
+    setShowMap(true)
+  }
 
   const fetchEstimates = async () => {
     setLoadingEstimate(true)
     try {
       const { data } = await bookingAPI.estimate({
         pickup_lat: form.pickupLat, pickup_lng: form.pickupLng,
-        drop_lat: form.dropLat,     drop_lng: form.dropLng,
+        drop_lat: form.dropLat, drop_lng: form.dropLng,
         load_weight_kg: form.loadWeightKg,
       })
       setEstimates(data.data?.estimates || [])
@@ -65,6 +146,10 @@ export default function BookVehicle() {
     }
   }
 
+  const pickupPos = [parseFloat(form.pickupLat), parseFloat(form.pickupLng)]
+  const dropPos = [parseFloat(form.dropLat), parseFloat(form.dropLng)]
+  const mapCenter = mapMode === 'pickup' ? pickupPos : dropPos
+
   return (
     <div className="p-5 md:p-8 max-w-2xl mx-auto">
       <div className="mb-8 animate-fade-up">
@@ -76,50 +161,75 @@ export default function BookVehicle() {
         <ProgressSteps steps={STEPS} current={step} />
       </div>
 
+      {/* Map Modal */}
+      {showMap && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70" onClick={() => setShowMap(false)} />
+          <div className="relative w-full max-w-2xl h-[500px] bg-dark-900 rounded-2xl overflow-hidden border border-dark-700">
+            <div className="absolute top-4 left-4 z-10 bg-dark-800 px-4 py-2 rounded-xl border border-dark-600">
+              <span className="font-mono text-sm text-dark-200">
+                {mapMode === 'pickup' ? '📍 Click to set pickup location' : '📍 Click to set drop location'}
+              </span>
+            </div>
+            <button onClick={() => setShowMap(false)} 
+              className="absolute top-4 right-4 z-10 bg-dark-800 p-2 rounded-xl border border-dark-600 text-dark-200 hover:bg-dark-700">
+              ✕
+            </button>
+            <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <LocationMarker position={pickupPos} type="pickup" onClick={handleMapClick} />
+              {form.dropLat && form.dropLng && (
+                <Marker position={dropPos} icon={redIcon} />
+              )}
+              <MapUpdater center={mapCenter} />
+            </MapContainer>
+          </div>
+        </div>
+      )}
+
       <div className="card p-6 animate-fade-up">
-        {/* Step 0: Location */}
         {step === 0 && (
           <div className="space-y-5">
             <h2 className="font-display font-semibold text-lg text-dark-50 flex items-center gap-2">
               <MapPin size={20} className="text-brand-400" /> Pickup & Drop Locations
             </h2>
+            
             <div>
               <label className="label">Pickup Address</label>
-              <div className="relative">
-                <div className="absolute left-3 top-3.5 w-3 h-3 bg-green-500 rounded-full border-2 border-green-300" />
-                <input value={form.pickupAddress} onChange={e => set('pickupAddress', e.target.value)} required
-                  placeholder="Enter pickup address" className="input-field pl-9" />
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <div className="absolute left-3 top-3.5 w-3 h-3 bg-green-500 rounded-full border-2 border-green-300" />
+                  <input value={form.pickupAddress} onChange={e => set('pickupAddress', e.target.value)} required
+                    placeholder="Enter pickup address" className="input-field pl-9" />
+                </div>
+                <button type="button" onClick={() => openMapFor('pickup')}
+                  className="btn-secondary px-3" title="Pick from map">
+                  <MapPinned size={18} />
+                </button>
               </div>
+              <p className="text-xs font-mono text-dark-500 mt-1 flex items-center gap-1">
+                <MapPinned size={12} /> Click map icon to select from map
+              </p>
             </div>
-            {/* Lat/Lng inputs for demo — in production these come from map click */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="label">Pickup Lat</label>
-                <input type="number" step="0.0001" value={form.pickupLat} onChange={e => set('pickupLat', e.target.value)} className="input-field" />
-              </div>
-              <div>
-                <label className="label">Pickup Lng</label>
-                <input type="number" step="0.0001" value={form.pickupLng} onChange={e => set('pickupLng', e.target.value)} className="input-field" />
-              </div>
-            </div>
+
             <div>
               <label className="label">Drop Address</label>
-              <div className="relative">
-                <div className="absolute left-3 top-3.5 w-3 h-3 bg-red-500 rounded-full border-2 border-red-300" />
-                <input value={form.dropAddress} onChange={e => set('dropAddress', e.target.value)} required
-                  placeholder="Enter drop address" className="input-field pl-9" />
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <div className="absolute left-3 top-3.5 w-3 h-3 bg-red-500 rounded-full border-2 border-red-300" />
+                  <input value={form.dropAddress} onChange={e => set('dropAddress', e.target.value)} required
+                    placeholder="Enter drop address" className="input-field pl-9" />
+                </div>
+                <button type="button" onClick={() => openMapFor('drop')}
+                  className="btn-secondary px-3" title="Pick from map">
+                  <MapPinned size={18} />
+                </button>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="label">Drop Lat</label>
-                <input type="number" step="0.0001" value={form.dropLat} onChange={e => set('dropLat', e.target.value)} className="input-field" />
-              </div>
-              <div>
-                <label className="label">Drop Lng</label>
-                <input type="number" step="0.0001" value={form.dropLng} onChange={e => set('dropLng', e.target.value)} className="input-field" />
-              </div>
-            </div>
+
             <ErrorMessage message={error} />
             <button onClick={next} disabled={!form.pickupAddress || !form.dropAddress} className="btn-primary w-full">
               Continue <ChevronRight size={16} />
@@ -127,7 +237,6 @@ export default function BookVehicle() {
           </div>
         )}
 
-        {/* Step 1: Load details */}
         {step === 1 && (
           <div className="space-y-5">
             <h2 className="font-display font-semibold text-lg text-dark-50 flex items-center gap-2">
@@ -172,7 +281,6 @@ export default function BookVehicle() {
           </div>
         )}
 
-        {/* Step 2: Vehicle selection */}
         {step === 2 && (
           <div className="space-y-5">
             <h2 className="font-display font-semibold text-lg text-dark-50">Choose Vehicle</h2>
@@ -220,14 +328,12 @@ export default function BookVehicle() {
           </div>
         )}
 
-        {/* Step 3: Payment & confirm */}
         {step === 3 && (
           <div className="space-y-5">
             <h2 className="font-display font-semibold text-lg text-dark-50 flex items-center gap-2">
               <CreditCard size={20} className="text-brand-400" /> Payment & Confirm
             </h2>
 
-            {/* Summary */}
             <div className="bg-dark-700 rounded-xl p-4 space-y-2 text-sm font-body">
               <div className="flex justify-between"><span className="text-dark-400">Pickup</span><span className="text-dark-200 text-right max-w-[60%] truncate">{form.pickupAddress}</span></div>
               <div className="flex justify-between"><span className="text-dark-400">Drop</span><span className="text-dark-200 text-right max-w-[60%] truncate">{form.dropAddress}</span></div>
@@ -242,13 +348,12 @@ export default function BookVehicle() {
               </div>
             </div>
 
-            {/* Payment method */}
             <div>
               <label className="label">Payment Method</label>
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { value: 'cash', icon: <Banknote size={20} />, label: 'Cash', desc: 'Pay on delivery' },
-                  { value: 'upi',  icon: <CreditCard size={20} />, label: 'UPI', desc: 'Pay digitally' },
+                  { value: 'upi', icon: <CreditCard size={20} />, label: 'UPI', desc: 'Pay digitally' },
                 ].map(pm => (
                   <button key={pm.value} type="button" onClick={() => set('paymentMethod', pm.value)}
                     className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left

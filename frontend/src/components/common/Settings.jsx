@@ -20,7 +20,8 @@ export default function Settings() {
     setProfileLoading(true); setProfileError('')
     try {
       const { data } = await authAPI.updateProfile(profileForm)
-      updateUser(data.data.user)
+      const userData = data.data?.user || data.data
+      updateUser(userData)
       toast.success('Profile updated ✓')
     } catch (err) {
       setProfileError(getErrorMessage(err))

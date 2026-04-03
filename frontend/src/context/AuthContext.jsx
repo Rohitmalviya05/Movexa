@@ -31,7 +31,8 @@ export function AuthProvider({ children }) {
     if (!token) { dispatch({ type: 'SET_LOADING', payload: false }); return }
     try {
       const { data } = await authAPI.me()
-      dispatch({ type: 'SET_USER', payload: data.data.user })
+      const userData = data.data?.user || data.data
+      dispatch({ type: 'SET_USER', payload: userData })
       connectSocket(token)
     } catch {
       localStorage.clear()
@@ -43,22 +44,26 @@ export function AuthProvider({ children }) {
 
   const login = async (credentials) => {
     const { data } = await authAPI.login(credentials)
-    const { user, accessToken, refreshToken } = data.data
+    const userData = data.data?.user || data.data
+    const accessToken = data.data?.accessToken || data.accessToken
+    const refreshToken = data.data?.refreshToken || data.refreshToken
     localStorage.setItem('accessToken', accessToken)
     localStorage.setItem('refreshToken', refreshToken)
-    dispatch({ type: 'SET_USER', payload: user })
+    dispatch({ type: 'SET_USER', payload: userData })
     connectSocket(accessToken)
-    return user
+    return userData
   }
 
   const signup = async (form) => {
     const { data } = await authAPI.signup(form)
-    const { user, accessToken, refreshToken } = data.data
+    const userData = data.data?.user || data.data
+    const accessToken = data.data?.accessToken || data.accessToken
+    const refreshToken = data.data?.refreshToken || data.refreshToken
     localStorage.setItem('accessToken', accessToken)
     localStorage.setItem('refreshToken', refreshToken)
-    dispatch({ type: 'SET_USER', payload: user })
+    dispatch({ type: 'SET_USER', payload: userData })
     connectSocket(accessToken)
-    return user
+    return userData
   }
 
   const logout = async () => {

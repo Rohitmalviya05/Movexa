@@ -120,23 +120,23 @@ export function SignupPage() {
 
         <div>
           <label className="label">Full Name</label>
-          <input name="name" value={form.name} onChange={handle} required
+          <input name="name" value={form.name} onChange={handle} required autoComplete="name"
             placeholder="Rahul Sharma" className="input-field" />
         </div>
         <div>
           <label className="label">Mobile Number</label>
-          <input name="phone" value={form.phone} onChange={handle} required
+          <input name="phone" value={form.phone} onChange={handle} required autoComplete="tel" inputMode="numeric"
             placeholder="9876543210" className="input-field" maxLength={10} />
         </div>
         <div>
           <label className="label">Email <span className="text-dark-500 normal-case font-body">(optional)</span></label>
-          <input name="email" type="email" value={form.email} onChange={handle}
+          <input name="email" type="email" value={form.email} onChange={handle} autoComplete="email"
             placeholder="you@example.com" className="input-field" />
         </div>
         <div>
           <label className="label">Password</label>
           <div className="relative">
-            <input name="password" type={showPass ? 'text' : 'password'} value={form.password} onChange={handle} required
+            <input name="password" type={showPass ? 'text' : 'password'} value={form.password} onChange={handle} required autoComplete="new-password"
               placeholder="Minimum 6 characters" className="input-field pr-10" minLength={6} />
             <button type="button" onClick={() => setShowPass(p => !p)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-200">

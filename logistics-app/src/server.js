@@ -61,8 +61,12 @@ const start = async () => {
         await pool.end();
         logger.info('PostgreSQL pool closed');
         const redisClient = getRedisClient();
-        await redisClient.quit();
-        logger.info('Redis connection closed');
+        if (redisClient) {
+          await redisClient.quit();
+          logger.info('Redis connection closed');
+        } else {
+          logger.info('Redis was unavailable, no connection to close');
+        }
         process.exit(0);
       });
       // Force exit after 10s

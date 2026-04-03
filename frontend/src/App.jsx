@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Layout from './components/common/Layout'
@@ -50,41 +50,41 @@ function DashboardRouter() {
   return <CustomerDashboard />
 }
 
+// ─── Layout wrapper ───────────────────────────────────────────────────────────
+
+function AppLayout() {
+  return (
+    <Layout>
+      <Outlet />
+    </Layout>
+  )
+}
+
 // ─── Main App ─────────────────────────────────────────────────────────────────
 
 function AppRoutes() {
   return (
     <Routes>
-      {/* Public */}
+      {/* Public routes */}
       <Route path="/" element={<LandingPage />} />
-      <Route path="/login"  element={<RedirectIfAuth><LoginPage /></RedirectIfAuth>} />
+      <Route path="/login" element={<RedirectIfAuth><LoginPage /></RedirectIfAuth>} />
       <Route path="/signup" element={<RedirectIfAuth><SignupPage /></RedirectIfAuth>} />
 
-      {/* Authenticated — shared layout */}
-      <Route path="/" element={<RequireAuth><Layout /></RequireAuth>}>
-
-        {/* Dashboard — role-aware */}
-        <Route path="dashboard" element={<DashboardRouter />} />
-
-        {/* Customer routes */}
-        <Route path="book"           element={<RequireRole role="customer"><BookVehicle /></RequireRole>} />
-        <Route path="bookings"       element={<RequireRole role="customer"><BookingsList /></RequireRole>} />
-        <Route path="bookings/:id"   element={<RequireRole role="customer"><BookingDetail /></RequireRole>} />
-        <Route path="payments"       element={<RequireRole role="customer"><PaymentsPage /></RequireRole>} />
-
-        {/* Driver routes */}
-        <Route path="driver/setup"           element={<RequireRole role="driver"><DriverSetup /></RequireRole>} />
-        <Route path="driver/bookings"        element={<RequireRole role="driver"><DriverBookingsList /></RequireRole>} />
-        <Route path="driver/bookings/:id"    element={<RequireRole role="driver"><DriverBookingDetail /></RequireRole>} />
-        <Route path="driver/earnings"        element={<RequireRole role="driver"><DriverEarnings /></RequireRole>} />
-
-        {/* Shared */}
-        <Route path="settings" element={<Settings />} />
-
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      {/* Protected routes with Layout */}
+      <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
+        <Route path="/dashboard" element={<DashboardRouter />} />
+        <Route path="/book" element={<RequireRole role="customer"><BookVehicle /></RequireRole>} />
+        <Route path="/bookings" element={<RequireRole role="customer"><BookingsList /></RequireRole>} />
+        <Route path="/bookings/:id" element={<RequireRole role="customer"><BookingDetail /></RequireRole>} />
+        <Route path="/payments" element={<RequireRole role="customer"><PaymentsPage /></RequireRole>} />
+        <Route path="/driver/setup" element={<RequireRole role="driver"><DriverSetup /></RequireRole>} />
+        <Route path="/driver/bookings" element={<RequireRole role="driver"><DriverBookingsList /></RequireRole>} />
+        <Route path="/driver/bookings/:id" element={<RequireRole role="driver"><DriverBookingDetail /></RequireRole>} />
+        <Route path="/driver/earnings" element={<RequireRole role="driver"><DriverEarnings /></RequireRole>} />
+        <Route path="/settings" element={<Settings />} />
       </Route>
 
+      {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

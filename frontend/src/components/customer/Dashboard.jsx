@@ -41,13 +41,13 @@ export default function CustomerDashboard() {
         bookingAPI.myBookings({ limit: 5 }),
         paymentAPI.history({ limit: 100 }),
       ])
-      const bList = bRes.status === 'fulfilled' ? bRes.value.data.data : []
-      const pList = pRes.status === 'fulfilled' ? pRes.value.data.data : []
-      const allBookings = Array.isArray(bList) ? bList : bList?.bookings || []
-      const allPayments = Array.isArray(pList) ? pList : pList?.payments || []
+      const bData = bRes.status === 'fulfilled' ? bRes.value.data.data : { bookings: [], pagination: {} }
+      const pData = pRes.status === 'fulfilled' ? pRes.value.data.data : { payments: [] }
+      const allBookings = Array.isArray(bData.bookings) ? bData.bookings : []
+      const allPayments = Array.isArray(pData.payments) ? pData.payments : []
       setBookings(allBookings)
       setStats({
-        total: bRes.value?.data?.pagination?.total || allBookings.length,
+        total: bData.pagination?.total || allBookings.length,
         completed: allBookings.filter(b => b.status === 'completed').length,
         pending: allBookings.filter(b => ['pending','driver_assigned','picked_up','in_transit'].includes(b.status)).length,
         totalSpent: allPayments.filter(p => p.status === 'success').reduce((s, p) => s + parseFloat(p.amount || 0), 0),

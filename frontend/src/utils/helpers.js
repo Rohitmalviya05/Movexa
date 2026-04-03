@@ -20,7 +20,10 @@ export const getInitials = (name = '') =>
   name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
 
 export const getErrorMessage = (error) =>
-  error?.response?.data?.message || error?.message || 'Something went wrong'
+  error?.response?.data?.data?.message ||
+  error?.response?.data?.message ||
+  error?.message ||
+  'Something went wrong'
 
 export const vehicleIcons = {
   bike:       '🏍️',
