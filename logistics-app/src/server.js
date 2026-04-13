@@ -16,10 +16,23 @@ if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
 const PORT = parseInt(process.env.PORT) || 3000;
 
 const start = async () => {
-  try {
-    // Test DB connection
-    await pool.query('SELECT 1');
-    logger.info('✅ PostgreSQL connection verified');
+  let retries = 3;
+  while (retries > 0) {
+    try {
+      await pool.query('SELECT 1');
+      logger.info('✅ PostgreSQL connection verified');
+      break;
+    } catch (err) {
+      retries--;
+      if (retries === 0) {
+        logger.error('Failed to connect to PostgreSQL after 3 attempts:', err.message);
+        logger.info('💡 Hint: Check if NeonDB project is paused or connection string is correct');
+        throw err;
+      }
+      logger.warn(` PostgreSQL connection failed, retrying... (${retries} left)`);
+      await new Promise(r => setTimeout(r, 2000));
+    }
+  }
 
     // Test Redis connection (optional - will fail silently if disabled)
     if (process.env.REDIS_ENABLED !== 'false') {

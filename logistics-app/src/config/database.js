@@ -6,10 +6,12 @@ const logger = require('../utils/logger');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+  ssl: { rejectUnauthorized: true },
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 20000,
+  connectionTimeoutMillis: 30000,
+  statement_timeout: 15000,
+  query_timeout: 15000,
 });
 
 pool.on('connect', () => {

@@ -1,7 +1,7 @@
 {
-  "name": "logistics-transport-app",
+  "name": "movexa",
   "version": "1.0.0",
-  "description": "Backend for logistics and transportation app - Uber-like for goods delivery",
+  "description": "Backend for Movexa logistics and transportation app",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
