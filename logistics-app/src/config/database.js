@@ -5,13 +5,8 @@ const { Pool } = require('pg');
 const logger = require('../utils/logger');
 
 const pool = new Pool({
-  host: '13.228.184.177',
-  port: 5432,
-  database: 'neondb',
-  user: 'neondb_owner',
-  password: 'npg_Xb9ZzDPjAM1w',
+  connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
-  options: 'endpoint=ep-silent-meadow-a1252okq-pooler',
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 20000,

@@ -134,13 +134,31 @@ export default function BookVehicle() {
   const back = () => { setError(''); setStep(s => s - 1) }
 
   const submit = async () => {
+    console.log('Submit clicked, form state:', form)
     setSubmitting(true); setError('')
     try {
-      const { data } = await bookingAPI.create(form)
+      const bookingData = {
+        pickupAddress: form.pickupAddress || '',
+        pickupLat: parseFloat(form.pickupLat) || 0,
+        pickupLng: parseFloat(form.pickupLng) || 0,
+        dropAddress: form.dropAddress || '',
+        dropLat: parseFloat(form.dropLat) || 0,
+        dropLng: parseFloat(form.dropLng) || 0,
+        loadType: form.loadType || '',
+        loadWeightKg: parseFloat(form.loadWeightKg) || 0,
+        vehicleType: form.vehicleType || '',
+        paymentMethod: form.paymentMethod || 'cash',
+        notes: form.notes || '',
+      }
+      console.log('Sending booking data:', JSON.stringify(bookingData, null, 2))
+      const response = await bookingAPI.create(bookingData)
+      console.log('Booking response:', response)
       toast.success('Booking created! Finding nearby drivers... 🔍', { duration: 5000 })
-      navigate(`/bookings/${data.data.booking.id}`)
+      navigate(`/bookings/${response.data.data.booking.id}`)
     } catch (err) {
-      setError(getErrorMessage(err))
+      console.error('Booking error:', err.response || err)
+      const msg = err.response?.data?.message || err.response?.data?.data?.message || err.message
+      setError(msg || 'Something went wrong')
     } finally {
       setSubmitting(false)
     }

@@ -15,6 +15,9 @@ class BookingService {
     loadType, loadWeightKg, vehicleType,
     paymentMethod, notes
   }) {
+    logger.info('Creating booking for customer:', customerId);
+    logger.info('Booking data:', { pickupAddress, pickupLat, pickupLng, dropAddress, dropLat, dropLng, loadType, loadWeightKg, vehicleType, paymentMethod });
+
     // Calculate distance
     const distanceKm = calculateDistance(
       parseFloat(pickupLat), parseFloat(pickupLng),
@@ -44,6 +47,8 @@ class BookingService {
       notes,
     });
 
+    logger.info('Booking created in DB:', booking.id);
+
     // Create pending payment record
     await PaymentModel.create({
       bookingId: booking.id,
@@ -52,10 +57,14 @@ class BookingService {
       paymentMethod,
     });
 
-    // Cache booking for quick lookup
-    await cache.set(`booking:${booking.id}`, booking, 3600);
+    // Cache booking for quick lookup (non-blocking)
+    try {
+      await cache.set(`booking:${booking.id}`, booking, 3600);
+    } catch (e) {
+      logger.warn('Cache set failed, continuing without cache');
+    }
 
-    logger.info(`Booking created: ${booking.id} by customer: ${customerId}`);
+    logger.info(`Booking created successfully: ${booking.id}`);
 
     return { booking, fareDetails };
   }

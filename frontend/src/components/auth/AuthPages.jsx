@@ -33,7 +33,7 @@ export function LoginPage() {
   return (
     <AuthLayout
       title="Welcome back"
-      subtitle="Sign in to your LoadGo account"
+      subtitle="Sign in to your Movexa account"
       alternate={<>Don't have an account? <Link to="/signup" className="text-brand-400 hover:text-brand-300 font-semibold">Sign up</Link></>}
     >
       <form onSubmit={submit} className="space-y-4">
@@ -81,7 +81,7 @@ export function SignupPage() {
     setLoading(true); setError('')
     try {
       const user = await signup(form)
-      toast.success('Account created! Welcome to LoadGo 🚛')
+      toast.success('Account created! Welcome to Movexa 🚛')
       navigate('/dashboard')
     } catch (err) {
       setError(getErrorMessage(err))
@@ -93,7 +93,7 @@ export function SignupPage() {
   return (
     <AuthLayout
       title="Create account"
-      subtitle="Join LoadGo and start transporting goods"
+      subtitle="Join Movexa and start transporting goods"
       alternate={<>Already have an account? <Link to="/login" className="text-brand-400 hover:text-brand-300 font-semibold">Sign in</Link></>}
     >
       <form onSubmit={submit} className="space-y-4">

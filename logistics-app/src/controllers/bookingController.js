@@ -2,6 +2,7 @@ const BookingService = require('../services/bookingService');
 const BookingModel = require('../models/Booking');
 const { successResponse, errorResponse, paginatedResponse } = require('../utils/response');
 const { calculateDistance, calculateFare, getEligibleVehicles, getSurgeMultiplier, VEHICLE_TYPES } = require('../utils/pricing');
+const logger = require('../utils/logger');
 
 const getEstimate = async (req, res, next) => {
   try {
@@ -50,7 +51,10 @@ const getVehicleTypes = async (req, res) => {
 
 const createBooking = async (req, res, next) => {
   try {
+    logger.info('createBooking called with user:', req.user.id);
+    logger.info('Request body:', req.body);
     const result = await BookingService.createBooking(req.user.id, req.body);
+    logger.info('Booking created successfully, result:', result);
 
     // Notify nearby drivers via socket
     const io = req.app.get('io');
@@ -60,6 +64,7 @@ const createBooking = async (req, res, next) => {
 
     return successResponse(res, result, 'Booking created successfully', 201);
   } catch (err) {
+    logger.error('createBooking error:', err);
     if (err.status) return errorResponse(res, err.message, err.status);
     next(err);
   }

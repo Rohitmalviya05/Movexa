@@ -21,13 +21,19 @@ const start = async () => {
     await pool.query('SELECT 1');
     logger.info('✅ PostgreSQL connection verified');
 
-    // Test Redis connection (optional)
-    try {
-      const redis = getRedisClient();
-      await redis.ping();
-      logger.info('✅ Redis connection verified');
-    } catch (redisErr) {
-      logger.warn('⚠️ Redis not available, continuing without Redis');
+    // Test Redis connection (optional - will fail silently if disabled)
+    if (process.env.REDIS_ENABLED !== 'false') {
+      try {
+        const redis = getRedisClient();
+        if (redis) {
+          await redis.ping();
+          logger.info('✅ Redis connection verified');
+        }
+      } catch (redisErr) {
+        logger.warn('⚠️ Redis not available, continuing without Redis');
+      }
+    } else {
+      logger.info('ℹ️ Redis disabled via configuration');
     }
 
     // Create Express app

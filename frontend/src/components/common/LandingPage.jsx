@@ -25,7 +25,7 @@ export default function LandingPage() {
           <div className="w-9 h-9 bg-brand-500 rounded-xl flex items-center justify-center shadow-glow-sm">
             <Truck size={20} className="text-white" />
           </div>
-          <span className="font-display font-bold text-xl text-dark-50">LoadGo</span>
+          <span className="font-display font-bold text-xl text-dark-50">Movexa</span>
         </div>
         <div className="flex items-center gap-3">
           <Link to="/login" className="btn-ghost text-sm">Sign In</Link>
@@ -83,7 +83,7 @@ export default function LandingPage() {
       {/* Features */}
       <section className="px-6 py-16 max-w-5xl mx-auto">
         <div className="text-center mb-10">
-          <p className="font-mono text-xs text-brand-400 uppercase tracking-widest mb-2">Why LoadGo</p>
+          <p className="font-mono text-xs text-brand-400 uppercase tracking-widest mb-2">Why Movexa</p>
           <h2 className="font-display font-bold text-3xl text-dark-50">Built for the way you work</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -107,7 +107,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-brand-500/10 to-transparent pointer-events-none" />
           <div className="text-5xl mb-4">🚛</div>
           <h2 className="font-display font-bold text-3xl text-dark-50 mb-3">Start shipping today</h2>
-          <p className="text-dark-400 mb-8 font-body">Join thousands of vendors and individuals who trust LoadGo for their logistics needs</p>
+          <p className="text-dark-400 mb-8 font-body">Join thousands of vendors and individuals who trust Movexa for their logistics needs</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/signup" className="btn-primary px-8 py-3">
               Create Free Account <ArrowRight size={16} />
@@ -127,9 +127,9 @@ export default function LandingPage() {
           <div className="w-6 h-6 bg-brand-500 rounded-lg flex items-center justify-center">
             <Truck size={14} className="text-white" />
           </div>
-          <span className="font-display font-bold text-dark-200">LoadGo</span>
+          <span className="font-display font-bold text-dark-200">Movexa</span>
         </div>
-        <p className="text-xs font-mono text-dark-600">© {new Date().getFullYear()} LoadGo. Built for small vendors & individuals.</p>
+        <p className="text-xs font-mono text-dark-600">© {new Date().getFullYear()} Movexa. Built for small vendors & individuals.</p>
       </footer>
     </div>
   )

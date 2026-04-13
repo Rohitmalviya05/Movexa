@@ -1,6 +1,6 @@
-# 🎨 LoadGo — Frontend
+# 🎨 Movexa — Frontend
 
-A modern, dark-themed React frontend for the LoadGo logistics platform.
+A modern, dark-themed React frontend for the Movexa logistics platform.
 
 ## Tech Stack
 - **React 18** + **Vite** — blazing fast dev server & build
