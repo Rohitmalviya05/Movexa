@@ -48,7 +48,7 @@ export default function Layout({ children }) {
           <Truck size={20} className="text-white" />
         </div>
         <div>
-          <span className="font-display font-bold text-dark-50 text-lg leading-none">LoadGo</span>
+          <span className="font-display font-bold text-dark-50 text-lg leading-none">Movexa</span>
           <div className="text-xs font-mono text-dark-400 capitalize">{user?.role}</div>
         </div>
       </div>
@@ -115,7 +115,7 @@ export default function Layout({ children }) {
             <div className="w-7 h-7 bg-brand-500 rounded-lg flex items-center justify-center">
               <Truck size={16} className="text-white" />
             </div>
-            <span className="font-display font-bold text-dark-50">LoadGo</span>
+            <span className="font-display font-bold text-dark-50">Movexa</span>
           </div>
           <button className="btn-ghost p-2 relative">
             <Bell size={20} />
